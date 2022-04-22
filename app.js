@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 
 const HttpError = require("./models/http-error");
 const usersRoutes = require("./routes/users-routes")
+const placesRoutes = require("./routes/places-routes.js")
 
 const app = express();
 
@@ -13,8 +14,8 @@ app.get((req, res) => {
 	res.status(200).json({ status: "success" });
 });
 
-app.use("/api/v1/user", usersRoutes)
-
+app.use("/api/v1/users", usersRoutes)
+app.use("/api/v1/places", placesRoutes)
 
 app.all("*", (req, res, next) => {
   const error = new HttpError(`Can't find ${req.originalUrl} on this server`, 404)
@@ -27,7 +28,6 @@ app.use((err, req, res, next) => {
     message: err.message
   })
 })
-
 
 mongoose
 	.connect(
