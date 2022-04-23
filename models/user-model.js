@@ -21,9 +21,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     // required: [true, "Please provide an image"]
   },
-  places: {
-    type: [String]
-  },
+  places: [{ type: mongoose.Types.ObjectId, required: true, ref: 'Place' }],
   createdAt: {
     type: Date,
     default: Date.now()

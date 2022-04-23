@@ -18,7 +18,7 @@ exports.getAllUsers = async (req, res, next) => {
 	res.status(200).json({
 		status: "success",
 		data: {
-			users,
+			users
 		},
 	});
 };
@@ -32,7 +32,7 @@ exports.signup = async (req, res, next) => {
 		);
 	}
 
-	const { name, email, password, places } = req.body;
+	const { name, email, password } = req.body;
 
 	//check if a user with the provided email exist
 	let existingUser;
@@ -75,7 +75,7 @@ exports.signup = async (req, res, next) => {
 		email,
 		password: hashedPassword,
 		image: cloudinaryRes.secure_url,
-		places,
+		places: []
 	});
 
 	//save the user to the database
