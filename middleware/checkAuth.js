@@ -7,7 +7,7 @@ module.exports = async (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1]
 
     if(!token) {
-      throw new Error("Authentication failed!") 
+      throw new Error("Authentication token is required") 
     }
 
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY)

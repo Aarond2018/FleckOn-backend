@@ -9,7 +9,23 @@ const cloudinary = require("../util/cloudinary");
 const { default: mongoose } = require("mongoose");
 
 exports.getPlaceById = async (req, res, next) => {
-	console.log(req.params.id);
+  let place;
+  try {
+    place = await Place.findById(req.params.id)
+  } catch (error) {
+    return next(new HttpError("An error occurred, Please try again later", 500))
+  }
+
+  if(!place) {
+    return next(new HttpError("Could not find a place for the provided ID", 404))
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      place
+    }
+  })
 };
 
 exports.createPlace = async (req, res, next) => {
@@ -76,3 +92,35 @@ exports.createPlace = async (req, res, next) => {
     }
   })
 };
+
+exports.deletePlaceById = async (req, res, next) => {
+  let place;
+  try {
+    place = await Place.findById(req.params.id).populate("creator")
+  } catch (error) {
+    return next(new HttpError("An error occurred, could not delete place", 500))
+  }
+
+  if (!place) {
+    return next(new HttpError("Could not find a place for the provided id", 404))
+  }
+
+  if (place.creator.id !== req.userData.userId) {
+    return next(new HttpError("You are allowed to delete this place", 401))
+  }
+
+  try {
+    const session = await mongoose.startSession()
+    await session.startTransaction()
+    await place.remove( {session} )
+    place.creator.places.pull(place)
+    await place.creator.save( {session} )
+    await session.commitTransaction()
+  } catch (error) {
+    return next(new HttpError("Something went wrong, could not delete place.", 500))
+  }
+
+  res.status(204).json({
+    status: "success"
+  })
+}

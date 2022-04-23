@@ -25,7 +25,7 @@ app.all("*", (req, res, next) => {
 app.use((err, req, res, next) => {
   res.status(err.statusCode || 500).json({
     status: "fail",
-    message: err.message
+    message: err.message || "Something went wrong!"
   })
 })
 

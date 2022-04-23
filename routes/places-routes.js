@@ -20,4 +20,6 @@ router.post("/", checkAuth, upload.single("image"), [
 
 router.get("/:id", placesControllers.getPlaceById)
 
+router.delete("/:id", checkAuth,placesControllers.deletePlaceById)
+
 module.exports = router
