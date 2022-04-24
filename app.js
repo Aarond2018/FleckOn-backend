@@ -20,7 +20,7 @@ app.use("/api/v1/users", usersRoutes)
 app.use("/api/v1/places", placesRoutes)
 
 app.all("*", (req, res, next) => {
-  const error = new HttpError(`Can't find ${req.originalUrl} on this server`, 404)
+  const error = new HttpError(`Can't find ${req.originalUrl} on this server.`, 404)
   next(error)
 })
 
