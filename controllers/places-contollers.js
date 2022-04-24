@@ -9,6 +9,7 @@ const cloudinary = require("../util/cloudinary");
 const { default: mongoose } = require("mongoose");
 
 exports.getPlaceById = async (req, res, next) => {
+//check id a place for the given id exist
 	let place;
 	try {
 		place = await Place.findById(req.params.id);
@@ -17,7 +18,7 @@ exports.getPlaceById = async (req, res, next) => {
 			new HttpError("An error occurred, Please try again later", 500)
 		);
 	}
-
+//return if it doesn't
 	if (!place) {
 		return next(
 			new HttpError("Could not find a place for the provided ID", 404)
@@ -33,6 +34,7 @@ exports.getPlaceById = async (req, res, next) => {
 };
 
 exports.createPlace = async (req, res, next) => {
+//check for input validation errors
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
 		return next(
@@ -44,6 +46,7 @@ exports.createPlace = async (req, res, next) => {
 
 	const coordinates = getCoordinatesForLocation(address);
 
+//convert the image file to base64 and upload to Cloudinary 
 	let cloudinaryRes;
 	try {
 		const dataURI = getDataURI(req.file);
@@ -55,6 +58,7 @@ exports.createPlace = async (req, res, next) => {
 		return next(new HttpError("Could create place, Please try again", 500));
 	}
 
+//create an instance of the place
 	const newPlace = new Place({
 		title,
 		description,
@@ -64,6 +68,7 @@ exports.createPlace = async (req, res, next) => {
 		creator: req.userData.userId,
 	});
 
+//find the user trying to create a place
 	let user;
 	try {
 		user = await User.findById(req.userData.userId);
@@ -73,10 +78,12 @@ exports.createPlace = async (req, res, next) => {
 		);
 	}
 
+//return if no user was found
 	if (!user) {
 		return next(new HttpError("Could not find user for provided id.", 404));
 	}
 
+//save the new place to the database and also add the place to the user's places array
 	try {
 		const session = await mongoose.startSession();
 		session.startTransaction();
@@ -98,6 +105,7 @@ exports.createPlace = async (req, res, next) => {
 };
 
 exports.getPlacesByUserId = async (req, res, next) => {
+//find the user and also popultate the full places object
 	let userWithPlaces;
 	try {
 		userWithPlaces = await User.findById(req.params.id).populate("places");
@@ -107,6 +115,7 @@ exports.getPlacesByUserId = async (req, res, next) => {
 		);
 	}
 
+//return if the user for the given id does not exist
 	if (!userWithPlaces || userWithPlaces.places.length === 0) {
 		return next(
 			new HttpError("Could not find places for the provided user id.", 404)
@@ -122,6 +131,7 @@ exports.getPlacesByUserId = async (req, res, next) => {
 };
 
 exports.deletePlaceById = async (req, res, next) => {
+//find the place by the given id and populate the full place creator object
 	let place;
 	try {
 		place = await Place.findById(req.params.id).populate("creator");
@@ -131,16 +141,19 @@ exports.deletePlaceById = async (req, res, next) => {
 		);
 	}
 
+//return if a place for the given id was not found
 	if (!place) {
 		return next(
 			new HttpError("Could not find a place for the provided id", 404)
 		);
 	}
 
+//also return if the person trying to delete the place is not the creator of the place
 	if (place.creator.id !== req.userData.userId) {
 		return next(new HttpError("You are allowed to delete this place", 401));
 	}
 
+//remove the place from the database and remove it from the user's places array
 	try {
 		const session = await mongoose.startSession();
 		await session.startTransaction();
@@ -161,6 +174,7 @@ exports.deletePlaceById = async (req, res, next) => {
 
 
 exports.updatePlace = async (req, res, next) => {
+//check if there is any input validation error
   const errors = validationResult(req)
   if(!errors.isEmpty()){
 		return next(
@@ -170,6 +184,7 @@ exports.updatePlace = async (req, res, next) => {
 
   const {title, description} = req.body
 
+//find the place for the given id
   let place;
   try {
     place = await Place.findById(req.params.id)
@@ -177,19 +192,20 @@ exports.updatePlace = async (req, res, next) => {
     return next(new HttpError("Something went wrong, try again", 500))
   }
 
+//return if a place wasn't found
   if(!place) {
     return next(new HttpError("This place is not recorded in the database", 404))
   }
 
+//alow only the creator of the place to edit the place
   if(req.userData.userId !== place.creator.toString()) {
-    console.log(req.userData.userId)
-    console.log(place.creator.toString())
     return next(new HttpError("You are not allowed to edit this place.", 401))
   }
 
   place.title = title
   place.description = description
 
+//save the updated place
   try {
     await place.save();
   } catch (error) {

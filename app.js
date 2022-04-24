@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const cors = require("cors")
 
 const HttpError = require("./models/http-error");
 const usersRoutes = require("./routes/users-routes")
@@ -9,6 +10,7 @@ const placesRoutes = require("./routes/places-routes.js")
 const app = express();
 
 app.use(bodyParser.json())
+app.use(cors())
 
 app.get((req, res) => {
 	res.status(200).json({ status: "success" });
